@@ -3,6 +3,7 @@
 // File details
 // indents = 2 spaces
 
+
 // Define initial variables *****
 
 // Position variables
@@ -26,7 +27,7 @@ int squeeze_space = 100;
 // Game details
 PFont font = createFont("Arial", 30); // TO DO: change to prettier font
 
-// Multiplayer definitions
+// Doublce player definitions
 int number_of_players = 0;
 PImage friend;
 float friend_x, friend_y;
@@ -34,7 +35,9 @@ boolean friend_alive = false;
 
 // ******************************
 
+
 // TO DO: add scoring, fix the replay, high score shit, shoot lazer beans, grow bigger and smaller, second player
+
 
 // Game setup *****
 void setup() {
@@ -53,11 +56,13 @@ void setup() {
 }
 // ****************
 
+
 // Draw functions *****
 void draw() {
   background(102, 217, 239); // TO DO: change the color of the background to a pretty picture
   noStroke();
   fill(200, 50, 50, 200);
+  
   // SCREEN 1: Start screen
   if (number_of_players == 0) {
     textFont(font);
@@ -66,6 +71,7 @@ void draw() {
     player = loadImage("lsp_transparent.png");
     player.resize(80, 80);
   }
+  
   // SCREEN 2a: Single player mode
   else if (player_alive) {
     image(player, player_x-40, player_y-40);
@@ -74,8 +80,11 @@ void draw() {
     rect(top_block_point.x, top_block_point.y, block_width, bottom_block_point.y-squeeze_space);
     vertical_velocity += gravity;
     player_y += vertical_velocity;
-    update();
+    update_single_player_mode();
   }
+  
+  // SCREEN 2b: Double player mode
+  
   // SCREEN 3: Finish screen
   else {
     textFont(font);
@@ -83,6 +92,7 @@ void draw() {
     text("GAME OVER", width/2, height/2);
     text("Do you want to play again? (y/n)", width/2, height/2+50);
   }
+  
   textFont(font);
   textAlign(RIGHT);
   String player_mode_string = String.format("Player mode: %d", number_of_players);
@@ -90,8 +100,9 @@ void draw() {
 }
 // ********************
 
+
 // Update functions *****
-void update() {
+void update_single_player_mode() {
   if (player_y > height || player_y+30 < 0) {
     player_alive = false;
   }
@@ -110,6 +121,9 @@ void update() {
   
 }
 
+void update_double_player_mode() {
+}
+
 void check_collision() {
   if ((player_x >= bottom_block_point.x && player_x <= bottom_block_point.x + block_width &&
        player_y >= bottom_block_point.y && player_y <= height) ||
@@ -120,13 +134,10 @@ void check_collision() {
 }
 // **********************
 
+
 // Key pressed functions *****
 void keyPressed() {
-  if (key == 'y') {
-    player_alive = true;
-    number_of_players = 0;
-    setup();
-  }
+  // SCREEN 1
   else if (key == '1') {
     number_of_players = 1;
     player_alive = true;
@@ -135,8 +146,19 @@ void keyPressed() {
     number_of_players = 2;
     player_alive = true;
   }
+  
+  // SCREEN 2a
   else {
     jump();
+  }
+  
+  // SCREEN 2b
+  
+  // Screen 3
+  if (key == 'y') {
+    player_alive = true;
+    number_of_players = 0;
+    setup();
   }
 }
 
