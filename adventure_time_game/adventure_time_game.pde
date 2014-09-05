@@ -56,12 +56,12 @@ void setup() {
   bottom_block_point = new PVector(block_x, block_y);
   top_block_point    = new PVector(block_x, 0); 
   
-  if (number_of_players == 2) {
+  
     player_y = height/2 - 100;
     
     friend_x = width/2;
     friend_y = height/2 + 100;
-  }
+  
 }
 // ****************
 
@@ -82,6 +82,7 @@ void draw() {
     
     friend = loadImage("lsp_transparent.png");
     friend.resize(80, 80);
+   
   }
   
   // SCREEN 2a: Single player mode
