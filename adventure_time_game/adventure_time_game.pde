@@ -12,8 +12,8 @@ float blockX, blockY; // block coordinates for bottomBlock
 
 // Physics variables
 float gravity;
-float playerVerticalVelocity;
-float friendVerticalVelocity;
+float playerVerticalVelocity, playerHorizontalVelocity;
+float friendVerticalVelocity, friendHorizontalVelocity;
 
 // Boolean variables
 boolean playerAlive = false;
@@ -24,7 +24,7 @@ PImage player;
 PVector bottomBlock;
 PVector topBlock;
 int blockWidth = 50;
-int squeezeSpace = 100;
+int squeezeSpace = 300;
 
 // Game details
 PFont font = createFont("Arial", 30); // TO DO: change to prettier font
@@ -51,7 +51,10 @@ void setup() {
   playerY = height/2;
   gravity = 0.3;
   playerVerticalVelocity = 0;
+  playerHorizontalVelocity = 0;
+  
   friendVerticalVelocity = 0;
+  friendHorizontalVelocity = 0;
   
   blockX = width;
   blockY = random(squeezeSpace, height);
@@ -60,10 +63,10 @@ void setup() {
   topBlock    = new PVector(blockX, 0); 
   
   
-    playerY = height/2 - 100;
+  playerY = height/2 - 100;
     
-    friendX = width/2;
-    friendY = height/2 + 100;
+  friendX = width/2;
+  friendY = height/2 + 100;
   
 }
 // ****************
@@ -96,6 +99,7 @@ void draw() {
     rect(topBlock.x, topBlock.y, blockWidth, bottomBlock.y-squeezeSpace);
     playerVerticalVelocity += gravity;
     playerY += playerVerticalVelocity;
+    playerX += playerHorizontalVelocity;
     updateSinglePlayerMode();
   }
   
@@ -105,10 +109,12 @@ void draw() {
     //ellipse(playerX, playerY, 20, 20);
     playerVerticalVelocity += gravity;
     playerY += playerVerticalVelocity;
+    playerX += playerHorizontalVelocity;
     
     image(friend, friendX-40, friendY-40);
     friendVerticalVelocity += gravity;
     friendY += friendVerticalVelocity;
+    friendX += friendHorizontalVelocity;
     
     rect(bottomBlock.x, bottomBlock.y, blockWidth, height-bottomBlock.y);
     rect(topBlock.x, topBlock.y, blockWidth, bottomBlock.y-squeezeSpace);
@@ -157,6 +163,10 @@ void updateSinglePlayerMode() {
 void updateDoublePlayerMode() {
   updateSinglePlayerMode();
   
+  if (friendY > height || friendY+30 < 0) {
+    friendAlive = false;
+  }
+  
   checkFriendCollision();
 }
 
@@ -164,7 +174,7 @@ void checkPlayerCollision() {
   if ((playerX >= bottomBlock.x && playerX <= bottomBlock.x + blockWidth &&
        playerY >= bottomBlock.y && playerY <= height) ||
       (playerX >= topBlock.x    && playerX <= topBlock.x + blockWidth &&
-       playerY >= 0                    && playerY <= bottomBlock.y - squeezeSpace)) {
+       playerY >= 0             && playerY <= bottomBlock.y - squeezeSpace)) {
     playerAlive = false;
   }
 }
@@ -173,14 +183,20 @@ void checkFriendCollision() {
   if ((friendX >= bottomBlock.x && friendX <= bottomBlock.x + blockWidth &&
        friendY >= bottomBlock.y && friendY <= height) ||
       (friendX >= topBlock.x    && friendX <= topBlock.x + blockWidth &&
-       friendY >= 0                    && friendY <= bottomBlock.y - squeezeSpace)) {
+       friendY >= 0             && friendY <= bottomBlock.y - squeezeSpace)) {
     friendAlive = false;
   }
   
-  if (Math.abs(friend_x-player_x) <= 40 && Math.abs(friend_y-player_y) <= 40) {
-    friend_vertical_velocity *= -1;
-    player_vertical_velocity *= -1;
+  if (Math.abs(friendX-playerX) <= 80 && Math.abs(friendY-playerY) <= 80) {
+    
+    
+    friendVerticalVelocity *= -1;
+    friendHorizontalVelocity *= -1;
+    playerVerticalVelocity *= -1;
+    playerHorizontalVelocity *= -1;
+    
   }
+  
 }
 // **********************
 
@@ -199,11 +215,23 @@ void keyPressed() {
   }
   
   // SCREEN 2a
-  else if (key == 'a'){
+  else if (key == 'w'){
     playerJump();
   }
-  else if (key == 'l') {
+  else if (key == 'a'){
+    playerMoveL();
+  }
+  else if (key == 'd'){
+    playerMoveR();
+  }
+  else if (key == 'o') {
     friendJump();
+  }
+  else if (key == 'k'){
+    friendMoveL();
+  }
+  else if (key ==';') {
+    friendMoveR();
   }
   
   // SCREEN 2b
@@ -221,10 +249,37 @@ void playerJump() {
     playerVerticalVelocity = -7;
   }
 }
+
+void playerMoveL(){
+  playerHorizontalVelocity = -7;
+}
+
+void playerMoveR(){
+  playerHorizontalVelocity = 7;
+}
   
 void friendJump() {
   if (friendY >=0) {
     friendVerticalVelocity = -7;
   }
 }
+
+void friendMoveL(){
+  friendHorizontalVelocity = -7;
+}
+
+void friendMoveR(){
+  friendHorizontalVelocity = 7;
+}
+
+void keyReleased(){
+  if (key == 'a' || key == 'd'){
+    playerHorizontalVelocity = 0; 
+  }
+  
+  if (key == 'k' || key == ';'){
+    friendHorizontalVelocity = 0;
+  }
+}
+
 // ***************************
