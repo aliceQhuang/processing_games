@@ -14,17 +14,19 @@ float blockX, blockY; // block coordinates for bottomBlock
 float gravity;
 float playerVerticalVelocity, playerHorizontalVelocity;
 float friendVerticalVelocity, friendHorizontalVelocity;
+float blockSpeed = 5;
 
 // Boolean variables
 boolean playerAlive = false;
 
 // Game structures
-PImage gameBackground;
+PImage gameBackground1, gameBackground2;
 PImage player;
 PVector bottomBlock;
 PVector topBlock;
 int blockWidth = 50;
 int squeezeSpace = 300;
+float background1Pos, background2Pos; 
 
 // Game details
 PFont font = createFont("Arial", 30); // TO DO: change to prettier font
@@ -45,8 +47,12 @@ boolean friendAlive = false;
 // Game setup *****
 void setup() {
   size(800, 450);
-  gameBackground = loadImage("adventure_time_background_resized.jpg");
+  gameBackground1 = loadImage("adventure_time_background_resized.jpg");
+  gameBackground2 = loadImage("adventure_time_background_resized_flipped.jpg");
  
+  background1Pos = 0;
+  background2Pos = 800;
+  
   playerX = width/2;
   playerY = height/2;
   gravity = 0.3;
@@ -74,7 +80,8 @@ void setup() {
 
 // Draw functions *****
 void draw() {
-  background(gameBackground); // TO DO: change the color of the background to a pretty picture
+  image(gameBackground1, background1Pos, 0); // TO DO: change the color of the background to a pretty picture
+  image(gameBackground2, background2Pos, 0);
   noStroke();
   fill(200, 50, 50, 200);
   
@@ -146,14 +153,24 @@ void updateSinglePlayerMode() {
     playerAlive = false;
   }
   
-  bottomBlock.x -= 5; // make faster depending on level
-  topBlock.x    -= 5; // HARD CODE A VARIABLE LATER
+  bottomBlock.x -= blockSpeed; // make faster depending on level
+  topBlock.x    -= blockSpeed; // HARD CODE A VARIABLE LATER
   
   if (bottomBlock.x < 0) {
     bottomBlock.x = width;
     bottomBlock.y = random(squeezeSpace, height);
     topBlock.x = width;
     topBlock.y = 0;
+  }
+  
+  // Scroll background
+  background1Pos -= blockSpeed;
+  background2Pos -= blockSpeed;
+  if (background1Pos <= -800){
+    background1Pos = 800;
+  }
+  if (background2Pos <= -800){
+    background2Pos = 800;
   }
   
   checkPlayerCollision();
