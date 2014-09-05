@@ -188,7 +188,14 @@ void checkFriendCollision() {
   }
   
   if (Math.abs(friendX-playerX) <= 80 && Math.abs(friendY-playerY) <= 80) {
-    
+    if (playerY >= friendY){
+      playerY = playerY + ((80 - (playerY-friendY))/2);
+      friendY = friendY - ((80 - (playerY-friendY))/2);
+    }
+    else if (playerY < friendY){
+      playerY = playerY - ((80 - (friendY-playerY))/2);
+      friendY = friendY + ((80 - (friendY-playerY))/2);
+    }
     
     friendVerticalVelocity *= -1;
     friendHorizontalVelocity *= -1;
