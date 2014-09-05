@@ -1,11 +1,14 @@
 int groundLevel = 400;
 float gravity = 0.2;
 Person player;
+Person enemy;
 
 void setup(){
   size(800, 600);
   smooth();
   player = new Person(400, 100, 100, 30, 30);
+  
+  enemy = new Person(600, 100, 50, 30, 30);
 }
 
 void draw(){
@@ -28,6 +31,12 @@ void draw(){
   
   // testing
   text(player.projectiles.size(), 0, 20);
+  
+  // enemy
+  rect(enemy.xPos, enemy.yPos, enemy.width, enemy.height);
+  fill(0);
+  textSize(18);
+  text(String.format("Enemy Health: %s" , enemy.health), width-200, 500);
   
   update();
 }
@@ -53,6 +62,15 @@ void update(){
     player.xPos = width-player.width;
   }
   
+  // enemy
+  enemy.ySpeed += gravity;
+  enemy.yPos += enemy.ySpeed;
+  
+  if (enemy.yPos >= groundLevel){
+    enemy.yPos = groundLevel;
+    enemy.ySpeed = 0;
+  }
+  
   // bullets
   for (int i = 0; i < player.projectiles.size(); i++){
     
@@ -63,6 +81,7 @@ void update(){
       temp.remove(player.projectiles.get(i));
     }
   }
+  
 }
 
 void keyPressed() {
