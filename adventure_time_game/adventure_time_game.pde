@@ -18,6 +18,7 @@ float vertical_velocity;
 boolean player_alive = false;
 
 // Game structures
+PImage game_background;
 PImage player;
 PVector bottom_block_point;
 PVector top_block_point;
@@ -36,12 +37,14 @@ boolean friend_alive = false;
 // ******************************
 
 
-// TO DO: add scoring, fix the replay, high score shit, shoot lazer beans, grow bigger and smaller, second player
+// TO DO: add scoring, fix the replay, high score shit, shoot lazer beans, grow bigger and smaller, 
+// second player, multiple columns on the screen
 
 
 // Game setup *****
 void setup() {
   size(800, 600);
+  game_background = loadImage("candy_kingdom_cropped.jpg");
  
   player_x = width/2;
   player_y = height/2;
@@ -59,7 +62,7 @@ void setup() {
 
 // Draw functions *****
 void draw() {
-  background(102, 217, 239); // TO DO: change the color of the background to a pretty picture
+  background(game_background); // TO DO: change the color of the background to a pretty picture
   noStroke();
   fill(200, 50, 50, 200);
   
@@ -138,7 +141,7 @@ void check_collision() {
 // Key pressed functions *****
 void keyPressed() {
   // SCREEN 1
-  else if (key == '1') {
+  if (key == '1') {
     number_of_players = 1;
     player_alive = true;
   }
@@ -148,14 +151,14 @@ void keyPressed() {
   }
   
   // SCREEN 2a
-  else {
+  else if (key == ' ') {
     jump();
   }
   
   // SCREEN 2b
   
   // Screen 3
-  if (key == 'y') {
+  else if (key == 'y') {
     player_alive = true;
     number_of_players = 0;
     setup();
