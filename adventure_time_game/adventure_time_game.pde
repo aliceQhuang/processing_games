@@ -176,6 +176,11 @@ void checkFriendCollision() {
        friendY >= 0                    && friendY <= bottomBlock.y - squeezeSpace)) {
     friendAlive = false;
   }
+  
+  if (Math.abs(friend_x-player_x) <= 40 && Math.abs(friend_y-player_y) <= 40) {
+    friend_vertical_velocity *= -1;
+    player_vertical_velocity *= -1;
+  }
 }
 // **********************
 
