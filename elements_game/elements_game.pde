@@ -1,40 +1,126 @@
+// File Details
+
+// TO DO: implement bullet collision
+
+// Define initial variable ******
 int groundLevel = 400;
 float gravity = 0.2;
 Person player;
 Person enemy;
+// ******************************
 
-void setup(){
-  size(800, 600);
-  smooth();
-  player = new Person(400, 100, 100, 30, 30);
+// Solid Object class *****
+static class SolidObject {
+  private static ArrayList instances = new ArrayList<SolidObject>();
+  float xPos, yPos;
   
-  enemy = new Person(600, 100, 50, 30, 30);
-}
-
-void draw(){
-  background(204);
-  
-  // ground
-  line(0, groundLevel+player.height, width, groundLevel+player.height);
-  
-  // player, TO DO: add image
-  rect(player.xPos, player.yPos, player.width, player.height);
-  fill(0);
-  textSize(18);
-  text(String.format("Health: %s", player.health), width-110, 20);
-  
-  // bullets
-  fill(255,0,0);
-  for (int i = 0; i < player.projectiles.size(); i++){
-    rect(player.projectiles.get(i).xPos, player.projectiles.get(i).yPos, 10, 10);
+  public SolidObject createSolidObject (float x, float y){
+    SolidObject so = new SolidObject();
+    xPos = x;
+    yPos = y;
+    so.xPos = x;
+    so.yPos = y;
+    instances.add(so);
+    return so;
   }
   
-  // testing
-  text(player.projectiles.size(), 0, 20);
+  private SolidObject (){
+  }
   
-  // enemy
-  rect(enemy.xPos, enemy.yPos, enemy.width, enemy.height);
+  public static ArrayList<SolidObject> getInstances() {
+    return instances;
+  }
+  
+  public float getX(){
+    return xPos;
+  }
+  
+  public float getY(){
+    return yPos;
+  }
+}
+
+// Person class *****
+// Person: width, height, x-position, y-position, health
+class Person extends SolidObject {
+  float width, height, xSpeed, ySpeed, health;
+  boolean isJumping;
+  ArrayList<Projectile> attacksFired;
+  
+  Person(float w, float h, float x, float y, float hp) {
+    createSolidObject(x, y);
+    width = w;
+    height = h;
+    health = hp;
+    xSpeed = 0;
+    ySpeed = 0;
+    isJumping = true;
+    attacksFired = new ArrayList<Projectile>();
+  }
+
+  void attack() {
+    Projectile attackFired = new Projectile(super.getX(), super.getY(), 10, 0, 10); // see projectile constructor
+    System.out.println("shoot function");
+    attacksFired.add(attackFired);
+    System.out.println(player.getInstances().get(0).getY());
+  }
+  
+}
+// ******************
+
+// Projectile class ******
+// Projectile: x-position, y-position, x-speed, y-speed, damage
+class Projectile extends SolidObject {
+  Person projector;
+  float xSpeed, ySpeed, damage;
+  
+  Projectile(float x, float y, float xSpd, float ySpd, float dam) {
+    createSolidObject(x, y);
+    xSpeed = xSpd;
+    ySpeed = ySpd;
+    damage = dam;
+  }
+}
+// ***********************
+
+void setup() {
+  size(800, 600);
+
+  // Graphics formatting
+  smooth();
+
+  // Players
+  player = new Person(30, 30, 400, 100, 100);
+  enemy = new Person(30, 30, 600, 100, 50);
+}
+
+void draw() {
+  background(204);
+  
+  // Ground
+  line(0, groundLevel+player.height, width, groundLevel+player.height);
+  
+  // Player, TO DO: add image to the person class
+  rect(player.getX(), player.getY(), player.width, player.height);
   fill(0);
+  textSize(18);
+  textAlign(RIGHT);
+  text(String.format("Health: %s", player.health), width-110, 20);
+  
+  // Attacks Fired
+  fill(255,0,0);
+  for (int i = 0; i < player.attacksFired.size(); i++){
+//    System.out.println("Draw function");
+//    System.out.println(player.attacksFired.get(i).getY());
+    rect(player.attacksFired.get(i).getX(), player.attacksFired.get(i).getY(), 10, 10);
+  }
+  
+  // !!! For testing purposes !!!
+  text(player.attacksFired.size(), 0, 20);
+  
+  // Enemy
+  //rect(enemy.xPos, enemy.yPos, enemy.width, enemy.height);
+  //fill(0);
   textSize(18);
   text(String.format("Enemy Health: %s" , enemy.health), width-200, 500);
   
@@ -43,7 +129,7 @@ void draw(){
 
 void update(){
   
-  // player
+  // Player Updates
   player.ySpeed += gravity;
   player.yPos += player.ySpeed;
   
@@ -52,7 +138,7 @@ void update(){
   if (player.yPos >= groundLevel){
     player.yPos = groundLevel;
     player.ySpeed = 0;
-    player.isJumped = false;
+    player.isJumping = false;
   }
   
   if (player.xPos <= 0) {
@@ -62,7 +148,7 @@ void update(){
     player.xPos = width-player.width;
   }
   
-  // enemy
+  // Enemy Updates
   enemy.ySpeed += gravity;
   enemy.yPos += enemy.ySpeed;
   
@@ -71,25 +157,24 @@ void update(){
     enemy.ySpeed = 0;
   }
   
-  // bullets
-  for (int i = 0; i < player.projectiles.size(); i++){
+  // Attacks Fired
+  for (int i = 0; i < player.attacksFired.size(); i++){
     
-    ArrayList<Projectile> temp = player.projectiles;
+    ArrayList<Projectile> temp = player.attacksFired;
     temp.get(i).xPos += temp.get(i).xSpeed;
     
     if (temp.get(i).xPos >= width) {
-      temp.remove(player.projectiles.get(i));
+      temp.remove(player.attacksFired.get(i));
     }
   }
-  
 }
 
 void keyPressed() {
   
   // jump if not already jumping
-  if (key == 'w' && !player.isJumped){ 
+  if (key == 'w' && !player.isJumping){ 
     player.ySpeed = -6; 
-    player.isJumped = true;
+    player.isJumping = true;
   } 
   else if (key == 'd') { 
     player.xSpeed = 5; 
@@ -98,7 +183,7 @@ void keyPressed() {
     player.xSpeed = -5; 
   }
   else if (key == ' ') {
-    player.shoot();
+    player.attack();
   }
 }
 
@@ -108,44 +193,6 @@ void keyReleased(){
   }
 }
 
-class Person {
-  float xPos, yPos, xSpeed, ySpeed, health, width, height;
-  boolean isJumped;
-  ArrayList<Projectile> projectiles;
-  
-  Person(float x, float y, float hp, float w, float h){
-    xPos = x;
-    yPos = y;
-    width = w;
-    height = h;
-    health = hp;
-    xSpeed = 0;
-    ySpeed = 0;
-    isJumped = true;
-    projectiles = new ArrayList<Projectile>();
-  }
-  
-  void shoot(){
-    Projectile bullet = new Projectile( xPos, yPos, 10, 0, 10); // see projectile constructor
-    projectiles.add(bullet);
-  }
-  
-}
-class Projectile {
-  Person shooter;
-  float xSpeed, ySpeed, damage;
-  float xPos, yPos;
-  
-  Projectile( float x, float y, float xSpd, float ySpd, float dam ) {
-    xPos = x;
-    yPos = y;
-    xSpeed = xSpd;
-    ySpeed = ySpd;
-    damage = dam;
-  }
-}
-
 void createRock(float x, float y, float hp){
   
 }
-  
