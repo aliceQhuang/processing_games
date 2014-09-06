@@ -136,7 +136,7 @@ class Projectile {
   float xSpeed, ySpeed, damage;
   float xPos, yPos;
   
-  Projectile( float x, float y, float xSpd, float ySpd, float dam) {
+  Projectile( float x, float y, float xSpd, float ySpd, float dam ) {
     xPos = x;
     yPos = y;
     xSpeed = xSpd;
