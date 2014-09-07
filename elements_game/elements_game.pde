@@ -12,15 +12,24 @@ Person enemy;
 // Solid Object class *****
 static class SolidObject {
   private static ArrayList instances = new ArrayList<SolidObject>();
-  float xPos, yPos;
+  float xPos, yPos, xSpeed, ySpeed;
+  String name;
   
-  public SolidObject createSolidObject (float x, float y){
+  public SolidObject createSolidObject (String id, float x, float y, float xSpd, float ySpd){
     SolidObject so = new SolidObject();
+    name = id;
     xPos = x;
     yPos = y;
+    xSpeed = xSpd;
+    ySpeed = ySpd;
+    
+    so.name = id;
     so.xPos = x;
     so.yPos = y;
+    so.xSpeed = xSpd;
+    so.ySpeed = ySpd;
     instances.add(so);
+    
     return so;
   }
   
@@ -43,26 +52,26 @@ static class SolidObject {
 // Person class *****
 // Person: width, height, x-position, y-position, health
 class Person extends SolidObject {
-  float width, height, xSpeed, ySpeed, health;
+  float width, height, health;
   boolean isJumping;
   ArrayList<Projectile> attacksFired;
   
   Person(float w, float h, float x, float y, float hp) {
-    createSolidObject(x, y);
+    createSolidObject("Person", x, y, 0, 0);
     width = w;
     height = h;
     health = hp;
-    xSpeed = 0;
-    ySpeed = 0;
     isJumping = true;
     attacksFired = new ArrayList<Projectile>();
   }
 
   void attack() {
-    Projectile attackFired = new Projectile(super.getX(), super.getY(), 10, 0, 10); // see projectile constructor
-    System.out.println("shoot function");
+    Projectile attackFired = new Projectile(getX(), getY(), 10, 0, 10); // see projectile constructor
+    System.out.println("attack function");
     attacksFired.add(attackFired);
-    System.out.println(player.getInstances().get(0).getY());
+    for (int i=0; i < player.getInstances().size(); i++){    
+      System.out.println(String.format("%s: X: %s, Y: %s", player.getInstances().get(i).name, player.getInstances().get(i).getX(), player.getInstances().get(i).getY()));
+    }
   }
   
 }
@@ -72,12 +81,10 @@ class Person extends SolidObject {
 // Projectile: x-position, y-position, x-speed, y-speed, damage
 class Projectile extends SolidObject {
   Person projector;
-  float xSpeed, ySpeed, damage;
+  float damage;
   
   Projectile(float x, float y, float xSpd, float ySpd, float dam) {
-    createSolidObject(x, y);
-    xSpeed = xSpd;
-    ySpeed = ySpd;
+    createSolidObject("Projectile", x, y, xSpd, ySpd);
     damage = dam;
   }
 }
@@ -110,8 +117,6 @@ void draw() {
   // Attacks Fired
   fill(255,0,0);
   for (int i = 0; i < player.attacksFired.size(); i++){
-//    System.out.println("Draw function");
-//    System.out.println(player.attacksFired.get(i).getY());
     rect(player.attacksFired.get(i).getX(), player.attacksFired.get(i).getY(), 10, 10);
   }
   
@@ -119,8 +124,8 @@ void draw() {
   text(player.attacksFired.size(), 0, 20);
   
   // Enemy
-  //rect(enemy.xPos, enemy.yPos, enemy.width, enemy.height);
-  //fill(0);
+  rect(enemy.xPos, enemy.yPos, enemy.width, enemy.height);
+  fill(0);
   textSize(18);
   text(String.format("Enemy Health: %s" , enemy.health), width-200, 500);
   
@@ -164,8 +169,23 @@ void update(){
     temp.get(i).xPos += temp.get(i).xSpeed;
     
     if (temp.get(i).xPos >= width) {
-      temp.remove(player.attacksFired.get(i));
+      player.getInstances().remove(temp.get(i));
+      temp.remove(temp.get(i));
+      
     }
+  }
+  
+  // All SolidObjects
+  for (SolidObject so : player.getInstances()){
+    if (so.name == "Person"){
+      
+      so.ySpeed += gravity;
+      
+    
+    }
+    
+    so.yPos += so.ySpeed;
+    so.xPos += so.xSpeed;
   }
 }
 
