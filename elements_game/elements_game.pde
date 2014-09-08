@@ -63,16 +63,15 @@ static class SolidObject {
     return p;
   }
   
+  void createTerrain(float x, float y, float w, float h, float xSpd, float ySpd, float hp){
+    createGround("Ground", x, y, w, 2, xSpd, ySpd, hp);
+    createWall("Wall", x, y+2, 2, h-4, xSpd, ySpd, hp);
+    createWall("Wall", x + w - 2, y+2, 2, h-4, xSpd, ySpd, hp);
+    createCeiling("Ceiling", x, y + h - 2, w, 2, xSpd, ySpd, hp);
+  }
+  
   SolidObject createGround(String id, float x, float y, float w, float h, float xSpd, float ySpd, float hp){
     SolidObject so = new SolidObject();
-    name = id;
-    xPos = x;
-    yPos = y;
-    xSpeed = xSpd;
-    ySpeed = ySpd;
-    width = w;
-    height = h;
-    health = hp;
     
     so.name = id;
     so.xPos = x;
@@ -88,8 +87,39 @@ static class SolidObject {
     return so;
   }
 
-  void createWall(){
+  SolidObject createWall(String id, float x, float y, float w, float h, float xSpd, float ySpd, float hp){
+    SolidObject so = new SolidObject();
+    
+    so.name = id;
+    so.xPos = x;
+    so.yPos = y;
+    so.xSpeed = xSpd;
+    so.ySpeed = ySpd;
+    so.width = w;
+    so.height = h;
+    so.health = hp;
+    
+    instances.add(so);
+    
+    return so;
   }  
+  
+  SolidObject createCeiling(String id, float x, float y, float w, float h, float xSpd, float ySpd, float hp){
+    SolidObject so = new SolidObject();
+    
+    so.name = id;
+    so.xPos = x;
+    so.yPos = y;
+    so.xSpeed = xSpd;
+    so.ySpeed = ySpd;
+    so.width = w;
+    so.height = h;
+    so.health = hp;
+    
+    instances.add(so);
+    
+    return so;
+  }
   
 
   
@@ -145,9 +175,12 @@ void setup() {
 
   // Players
   player = new Person("Player", 0, 100, 30, 30, 0, 0, 100);
-  enemy = new Person("Enemy", 600000, 100000, 0, 0, 0, 0, 50);
+  enemy = new Person("Enemy", 600, 100, 30, 30, 0, 0, 50);
   
-  player.createGround("Ground", 0, 400, 30, 30, 0, 0, 100000);
+  player.createTerrain(300, 300, 50, 50, 0, 0, 100000);
+  player.createGround("Ground", 0, 400, 1000, 50, 0, 0, 100000);
+//  player.createWall("Wall", 500, 300, 30, 50, 0, 0, 100000);
+//  player.createCeiling("Ceiling", 300, 300, 30, 50, 0, 0, 100000);
 }
 
 void draw() {
@@ -167,13 +200,21 @@ void draw() {
       fill(255,255,255);
       rect(so.xPos, so.yPos, so.width, so.height);
     }
+    else if (so.name == "Wall") {
+      fill(255,255,255);
+      rect(so.xPos, so.yPos, so.width, so.height);
+    }
+    else if (so.name == "Ceiling"){
+      fill(255,255,255);
+      rect(so.xPos, so.yPos, so.width, so.height);
+    }
     else if (so.name == "Player"){
       fill(255,0,0);
-      rect(so.xPos, so.yPos, player.width, player.height);
+      rect(so.xPos, so.yPos, so.width, so.height);
     }
     else if (so.name == "Enemy"){
-//      fill(255,0,0);
-//      rect(so.xPos, so.yPos, player.width, player.height);
+      fill(0,255,0);
+      rect(so.xPos, so.yPos, so.width, so.height);
     }
     else if (so.name == "Projectile"){
       fill(255,255,255);
@@ -194,23 +235,33 @@ void update(){
     
     if (so.name == "Player"){   
       // New Ground Logic ***************
-      SolidObject objectTouched = checkCollision(so);
+      ArrayList<SolidObject> objectsTouched = checkCollision(so);
       
       // testing 
-      if (objectTouched != null){
-      System.out.println(String.format("%s", objectTouched.name)); }
-      if (objectTouched != null && objectTouched.name == "Ground") {
+//      if (objectTouched != null){
+//      //System.out.println(String.format("%s", objectTouched.name)); 
+//      }
+      for (SolidObject sot : objectsTouched) {
+        if (sot != null && sot.name == "Ground") {  
+          
+          so.yPos = sot.yPos - so.height;
+          so.ySpeed = 0;
+          player.isJumping = false;
+        }
         
-               
-        System.out.println(String.format("Grounded"));
+        if (sot != null && sot.name == "Wall") {
+          so.xSpeed = 0;
+          if (so.xPos <= sot.xPos){
+            so.xPos = sot.xPos - so.width;
+          } else {
+            so.xPos = sot.xPos + sot.width;
+          }
+        }
         
-        so.yPos = objectTouched.yPos - so.height;
-        
-        so.ySpeed = 0;
-       
-        player.isJumping = false;
-        
-       
+        if (sot != null && sot.name == "Ceiling") {
+          so.yPos = sot.yPos + sot.height;
+          so.ySpeed = 0;
+        }
       }
       // ********************************
       
@@ -241,21 +292,15 @@ void update(){
       
       if (so.health == 0) {
         iter.remove();
-        break;
+        
       }
       enemy.health = so.health;
-      
-      checkCollision(so);   
       
       so.ySpeed += gravity;
       so.yPos += so.ySpeed;
       
       so.xPos += so.xSpeed;
-      
-      if (so.yPos >= groundLevel){
-        so.yPos = groundLevel;
-        so.ySpeed = 0;
-      }
+     
 
       if (so.xPos <= 0) {
         so.xPos = 0;
@@ -263,24 +308,55 @@ void update(){
       if (so.xPos >= width-player.width){
         so.xPos = width-player.width;
       }
+      ArrayList<SolidObject> objectsTouched = checkCollision(so);
+      
+      // testing 
+//      if (objectTouched != null){
+//      //System.out.println(String.format("%s", objectTouched.name)); 
+//      }
+      for (SolidObject sot : objectsTouched) {
+        if (sot != null && sot.name == "Ground") {        
+          so.yPos = sot.yPos - so.height;        
+          so.ySpeed = 0;       
+          player.isJumping = false;       
+        }
+        
+        if (sot != null && sot.name == "Wall") {
+          so.xSpeed = 0;
+          if (so.xPos <= sot.xPos){
+            so.xPos = sot.xPos - so.width;
+          } else {
+            so.xPos = sot.xPos + sot.width;
+          }
+        }
+        
+         if (sot != null && sot.name == "Ceiling") {
+          so.yPos = sot.yPos + sot.height;
+          so.ySpeed = 0;
+        }
+        
+      }
+      
     }
     
     
     else if (so.name == "Projectile"){
       
       Projectile temp = (Projectile) so;
-      SolidObject objectHit = checkCollision(so);
-      if (objectHit != null && objectHit.name == "Enemy") {
-        
+      
+      ArrayList<SolidObject> objectsTouched = checkCollision(so);
+      for (SolidObject sot : objectsTouched) {
+        if (sot != null && sot.name == "Enemy") {  
                 
-        System.out.println(String.format("HP Before: %s", objectHit.health));
+        System.out.println(String.format("HP Before: %s", sot.health));
         
-        objectHit.health -= temp.damage;
+        sot.health -= temp.damage;
         iter.remove();
         player.attacksFired.remove(0);
 
         System.out.println(String.format("Damage dealt: %s", temp.damage));
-        System.out.println(String.format("HP After: %s", objectHit.health));
+        System.out.println(String.format("HP After: %s", sot.health));
+      }
       }
       
       // so.ySpeed += gravity;
@@ -294,20 +370,40 @@ void update(){
     
     }
   
-  } // while loop
-}
+  } 
+    }// while loop
 
-SolidObject checkCollision(SolidObject so1){
+    
+ArrayList<SolidObject> checkCollision(SolidObject so1){
+  
+  ArrayList<SolidObject> list = new ArrayList<SolidObject>();
   
   Iterator<SolidObject> iter = player.getInstances().iterator();
   while (iter.hasNext()) {
     SolidObject so2 = iter.next();
+      
+      if (so1.name == "Ground"){
+        if (so2.name == "Ground" || so2.name == "Wall" || so2.name == "Ceiling"){
+          continue;
+        }
+      }
+      if (so1.name == "Wall"){
+        if(so2.name == "Ground" || so2.name == "Wall" || so2.name == "Ceiling") {
+          continue;
+        }
+      }
+      if (so1.name == "Ceiling"){
+        if(so2.name == "Ground" || so2.name == "Wall" || so2.name == "Ceiling") {
+          continue;
+        }
+      }
+      
       if (intersects(so1, so2)) { 
-
-        return so2;
+        list.add(so2);
+        //return so2;
     }
   }
-  return null;
+  return list;
 }
 boolean intersects(SolidObject so1, SolidObject so2) {
   if (so1 == so2){
@@ -340,18 +436,21 @@ void keyPressed() {
   }
   else if (key == ' ') {
     player.attack();
+    //player.createTerrain(player.getInstances().get(0).xPos + 50, player.getInstances().get(0).yPos, 10, 10, 0, 0, 100000);
     System.out.println("Shoot");
     
-    System.out.println(String.format("xPos: %s", player.getInstances().get(0).xPos));
-    System.out.println(String.format("yPos: %s", player.getInstances().get(0).yPos));
-    System.out.println(String.format("W: %s", player.getInstances().get(0).width));
-    System.out.println(String.format("H: %s", player.getInstances().get(0).height));
+    for ( SolidObject so : player.getInstances()){
+      System.out.println(String.format("Name: %s, X: %s, Y: %s, W: %s, H: %s, xSpd: %s, ySpd: %s, HP: %s", so.name, so.xPos, so.yPos, so.width, so.height, so.xSpeed, so.ySpeed, so.health));
+//    System.out.println(String.format("xPos: %s", player.getInstances().get(0).xPos));
+//    System.out.println(String.format("yPos: %s", player.getInstances().get(0).yPos));
+//    System.out.println(String.format("W: %s", player.getInstances().get(0).width));
+//    System.out.println(String.format("H: %s", player.getInstances().get(0).height));
 //    System.out.println(String.format("%s", player.getInstances().get(0).name));
 //    System.out.println(String.format("%s", player.getInstances().get(1).name));
 //    System.out.println(String.format("%s", player.getInstances().get(2).name));
 //    System.out.println(String.format("%s", player.getInstances().get(3).name));
   }
-}
+}}
 
 void keyReleased(){
   SolidObject p = player.getInstances().get(0);
