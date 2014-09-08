@@ -1,6 +1,6 @@
 // File Details
 
-// TO DO: implement bullet collision
+// TO DO: Terrain creation/destruction, merge player/enemy code together (currently lots of duplicate code)
 import java.util.Iterator;
 import java.awt.Rectangle;
 
@@ -63,6 +63,34 @@ static class SolidObject {
     return p;
   }
   
+  SolidObject createGround(String id, float x, float y, float w, float h, float xSpd, float ySpd, float hp){
+    SolidObject so = new SolidObject();
+    name = id;
+    xPos = x;
+    yPos = y;
+    xSpeed = xSpd;
+    ySpeed = ySpd;
+    width = w;
+    height = h;
+    health = hp;
+    
+    so.name = id;
+    so.xPos = x;
+    so.yPos = y;
+    so.xSpeed = xSpd;
+    so.ySpeed = ySpd;
+    so.width = w;
+    so.height = h;
+    so.health = hp;
+    
+    instances.add(so);
+    
+    return so;
+  }
+
+  void createWall(){
+  }  
+  
 
   
   private SolidObject (){
@@ -116,37 +144,42 @@ void setup() {
   smooth();
 
   // Players
-  player = new Person("Player", 400, 100, 30, 30, 0, 0, 100);
-  //player = player.getInstances().get(0);
-  enemy = new Person("Enemy", 600, 100, 30, 30, 0, 0, 50);
+  player = new Person("Player", 0, 100, 30, 30, 0, 0, 100);
+  enemy = new Person("Enemy", 600000, 100000, 0, 0, 0, 0, 50);
+  
+  player.createGround("Ground", 0, 400, 30, 30, 0, 0, 100000);
 }
 
 void draw() {
-  background(204);
+  background(0,0,255);
  
-  // Ground
-  line(0, groundLevel+player.height, width, groundLevel+player.height);
-  
+  // Old Ground Logic
+  // line(0, groundLevel+player.height, width, groundLevel+player.height);
   
   // !!! For testing purposes !!!
-  fill(0);
+  fill(0,255,0);
   text(player.attacksFired.size(), 0, 20);
   text(String.format("Health: %s", player.health), width-110, 20);
   text(String.format("Enemy Health: %s" , enemy.health), width-200, 500);
   
   for (SolidObject so : player.getInstances()) {
-    if (so.name == "Player"){
+    if (so.name == "Ground") {
+      fill(255,255,255);
+      rect(so.xPos, so.yPos, so.width, so.height);
+    }
+    else if (so.name == "Player"){
       fill(255,0,0);
       rect(so.xPos, so.yPos, player.width, player.height);
     }
     else if (so.name == "Enemy"){
-      fill(0,0,0);
-      rect(so.xPos, so.yPos, player.width, player.height);
+//      fill(255,0,0);
+//      rect(so.xPos, so.yPos, player.width, player.height);
     }
     else if (so.name == "Projectile"){
-      fill(255);
-      rect(so.xPos, so.yPos, 10, 10);
+      fill(255,255,255);
+      rect(so.xPos, so.yPos, so.width, so.height);
     }
+    
   }
   
   update();
@@ -160,21 +193,42 @@ void update(){
     SolidObject so = iter.next();
     
     if (so.name == "Player"){   
-    
-      checkCollision(so);   
+      // New Ground Logic ***************
+      SolidObject objectTouched = checkCollision(so);
+      
+      // testing 
+      if (objectTouched != null){
+      System.out.println(String.format("%s", objectTouched.name)); }
+      if (objectTouched != null && objectTouched.name == "Ground") {
+        
+               
+        System.out.println(String.format("Grounded"));
+        
+        so.yPos = objectTouched.yPos - so.height;
+        
+        so.ySpeed = 0;
+       
+        player.isJumping = false;
+        
+       
+      }
+      // ********************************
+      
       
       so.ySpeed += gravity;
       so.yPos += so.ySpeed;
       
       so.xPos += so.xSpeed;
       
-      if (so.yPos >= groundLevel){
-        so.yPos = groundLevel;
-        so.ySpeed = 0;
-        if (so.name == "Player"){
-          player.isJumping = false;
-        }
-      }
+      // Old Ground Logic ***************
+//      if (so.yPos >= groundLevel){
+//        so.yPos = groundLevel;
+//        so.ySpeed = 0;
+//        if (so.name == "Player"){
+//          player.isJumping = false;
+//        }
+//      }
+      // ********************************
 
       if (so.xPos <= 0) {
         so.xPos = 0;
@@ -227,7 +281,7 @@ void update(){
 
         System.out.println(String.format("Damage dealt: %s", temp.damage));
         System.out.println(String.format("HP After: %s", objectHit.health));
-      };
+      }
       
       // so.ySpeed += gravity;
       so.yPos += so.ySpeed;
@@ -241,6 +295,32 @@ void update(){
     }
   
   } // while loop
+}
+
+SolidObject checkCollision(SolidObject so1){
+  
+  Iterator<SolidObject> iter = player.getInstances().iterator();
+  while (iter.hasNext()) {
+    SolidObject so2 = iter.next();
+      if (intersects(so1, so2)) { 
+
+        return so2;
+    }
+  }
+  return null;
+}
+boolean intersects(SolidObject so1, SolidObject so2) {
+  if (so1 == so2){
+    return false;
+  }
+  Rectangle r1 = new Rectangle((int)so1.xPos, (int)so1.yPos, (int)so1.width, (int)so1.height);
+  Rectangle r2 = new Rectangle((int)so2.xPos, (int)so2.yPos, (int)so2.width, (int)so2.height);
+  
+  if (r1.intersects(r2)){
+    //System.out.println("Collision detected");
+    return true;
+  }
+ return false; 
 }
 
 void keyPressed() {
@@ -261,6 +341,15 @@ void keyPressed() {
   else if (key == ' ') {
     player.attack();
     System.out.println("Shoot");
+    
+    System.out.println(String.format("xPos: %s", player.getInstances().get(0).xPos));
+    System.out.println(String.format("yPos: %s", player.getInstances().get(0).yPos));
+    System.out.println(String.format("W: %s", player.getInstances().get(0).width));
+    System.out.println(String.format("H: %s", player.getInstances().get(0).height));
+//    System.out.println(String.format("%s", player.getInstances().get(0).name));
+//    System.out.println(String.format("%s", player.getInstances().get(1).name));
+//    System.out.println(String.format("%s", player.getInstances().get(2).name));
+//    System.out.println(String.format("%s", player.getInstances().get(3).name));
   }
 }
 
@@ -270,38 +359,6 @@ void keyReleased(){
     p.xSpeed = 0; 
   }
 }
-
-void createRock(float x, float y, float hp){
-  
-}
-
-SolidObject checkCollision(SolidObject so1){
-  
-  Iterator<SolidObject> iter = player.getInstances().iterator();
-  while (iter.hasNext()) {
-    SolidObject so2 = iter.next();
- 
-    if (intersects(so1, so2)) { 
-
-      return so2;
-    }
-  }
-  return null;
-}
-boolean intersects(SolidObject so1, SolidObject so2) {
-  if (so1 == so2){
-    return false;
-  }
-  Rectangle r1 = new Rectangle((int)so1.xPos, (int)so1.yPos, (int)so1.width, (int)so1.height);
-  Rectangle r2 = new Rectangle((int)so2.xPos, (int)so2.yPos, (int)so2.width, (int)so2.height);
-  
-  if (r1.intersects(r2)){
-    System.out.println("Collision detected");
-    return true;
-  }
- return false; 
-}
-
 
 // Not used ATM
 public SolidObject findPlayer(){
