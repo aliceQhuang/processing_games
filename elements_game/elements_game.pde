@@ -10,6 +10,7 @@ import java.awt.Rectangle;
 // Define initial variable ******
 
 float gravity = 0.2;
+float friction = 0.2;
 
 // red blue green grey
 color fire = color(255,0,0), water = color(0, 0, 255), earth = color(0,255,0), wind = color(244,244,244);
@@ -57,7 +58,7 @@ static class SolidObject {
     so.width = w;
     so.height = h;
     so.health = hp;
-    
+        
     instances.add(so);
     
     return so;
@@ -87,10 +88,10 @@ static class SolidObject {
   // creates impassable Terrain at point (x, y) with width w, height h... etc
   // Terrain consists of a Ground block on top, 2 Walls for the sides, and a Ceiling for the bottom
   void createTerrain(float x, float y, float w, float h, float xSpd, float ySpd, float hp){
-    createGround("Ground", x, y, w, h/2, xSpd, ySpd, hp);
-    createWall("Wall", x-5, y+5, w/2 + 5, h-10, xSpd, ySpd, hp);
-    createWall("Wall", x + w/2, y+5, w/2 + 5, h-10, xSpd, ySpd, hp);
-    createCeiling("Ceiling", x, y + h/2, w, h/2, xSpd, ySpd, hp);
+    createGround("Ground", x, y, w-3, 6, xSpd, ySpd, hp);
+    createWall("Wall", x-10, y+5, w/2 + 10, h-10, xSpd, ySpd, hp);
+    createWall("Wall", x + w/2, y+5, w/2 + 10, h-10, xSpd, ySpd, hp);
+    createCeiling("Ceiling", x, y + h/2, w-3, 6, xSpd, ySpd, hp);
   }
   
   // Creates a SolidObject with id "Ground"
@@ -193,6 +194,11 @@ static class Projectile extends SolidObject {
   float damage;
   private Projectile() {
   }
+  
+  public void knockBack(SolidObject so, float xSpd, float ySpd){
+    so.xSpeed = xSpd;
+    so.ySpeed = ySpd; 
+  }
 }
 // ***********************
 //PImage lsp;
@@ -228,8 +234,10 @@ void generateMap(){
 
 void generateMap1(){
   player.createGround("Ground", 0, 400, 99999999, 500, 0, 0, 100000);
-  for (int i = 0; i < 10; i++){
-  player.createTerrain(random(0,1000), random(height/2, 500), random(10, 100), random(100, 200), 0, 0, 100000);
+  for (int i = 0; i < 50; i++){
+    player.createTerrain(random(0,2000), random(height/2, 400), random(10, 100), random(100, 200), 0, 0, 100000);
+    player.createTerrain(random(2000,4000), random(height/3, 600), random(10, 100), random(100, 200), 0, 0, 100000);
+    player.createTerrain(random(4000,6000), random(height/1.5, 700), random(10, 100), random(100, 200), 0, 0, 100000);
   }
 }
 
@@ -356,23 +364,21 @@ void update(){
       so.ySpeed += gravity;
       so.yPos += so.ySpeed;
       
+      
       so.xPos += so.xSpeed;
      
-
-      if (so.xPos <= 0) {
-        so.xPos = 0;
+      if (so.xSpeed > 1){
+        so.xSpeed -= friction;
+      } else if (so.xSpeed < -1){
+        so.xSpeed += friction;
+      } else {
+        so.xSpeed = 0;
       }
-      if (so.xPos >= width-player.width){
-        so.xPos = width-player.width;
-      }
+      
       ArrayList<SolidObject> objectsTouched = checkCollision(so);
       
       for (SolidObject sot : objectsTouched) {
-        if (sot != null && sot.name == "Ground") {        
-          so.yPos = sot.yPos - so.height;        
-          so.ySpeed = 0;       
-           
-        }
+        
         
         if (sot != null && sot.name == "Wall") {
           so.xSpeed = 0;
@@ -381,6 +387,11 @@ void update(){
           } else {
             so.xPos = sot.xPos + sot.width;
           }
+        }
+        if (sot != null && sot.name == "Ground") {        
+          so.yPos = sot.yPos - so.height;        
+          so.ySpeed = 0;       
+           
         }
         
          if (sot != null && sot.name == "Ceiling") {
@@ -399,17 +410,25 @@ void update(){
       
       ArrayList<SolidObject> objectsTouched = checkCollision(so);
       for (SolidObject sot : objectsTouched) {
-        if (sot != null && sot.name == "Enemy" || sot.name == "Wall") {  
+        if (sot != null && sot.name == "Enemy") {  
                 
-        System.out.println(String.format("HP Before: %s", sot.health));
+          System.out.println(String.format("HP Before: %s", sot.health));
         
-        sot.health -= temp.damage;
-        iter.remove();
-        player.attacksFired.remove(0);
+          sot.health -= temp.damage;
+          temp.knockBack(sot, 10f, -3f);
+          
+          iter.remove();
+          player.attacksFired.remove(0);
 
-        System.out.println(String.format("Damage dealt: %s", temp.damage));
-        System.out.println(String.format("HP After: %s", sot.health));
-      }
+          System.out.println(String.format("Damage dealt: %s", temp.damage));
+          System.out.println(String.format("HP After: %s", sot.health));
+          break;
+        }
+        else if (sot != null && sot.name == "Wall"){
+          iter.remove();
+          player.attacksFired.remove(0);
+          break;
+        }
       }
       
       // so.ySpeed += gravity;
@@ -423,8 +442,8 @@ void update(){
     
     }
   
-  } 
-    }// while loop
+  } // while loop
+}
 
     
 ArrayList<SolidObject> checkCollision(SolidObject so1){
@@ -504,7 +523,8 @@ void keyPressed() {
 //    for ( SolidObject so : player.getInstances()){
 //      System.out.println(String.format("Name: %s, X: %s, Y: %s, W: %s, H: %s, xSpd: %s, ySpd: %s, HP: %s", so.name, so.xPos, so.yPos, so.width, so.height, so.xSpeed, so.ySpeed, so.health));
 //  }
-}}
+  }
+}
 
 void keyReleased(){
   SolidObject p = player.getInstances().get(0);
@@ -515,6 +535,35 @@ void keyReleased(){
     player.isMovingR = false;
     player.isMovingL = false;
     
+  }
+}
+
+// Animation class
+// Class for animating a sequence of GIFs
+
+class Animation {
+  PImage[] images;
+  int imageCount;
+  int frame;
+  
+  Animation(String imagePrefix, int count) {
+    imageCount = count;
+    images = new PImage[imageCount];
+
+    for (int i = 0; i < imageCount; i++) {
+      // Use nf() to number format 'i' into four digits
+      String filename = imagePrefix + nf(i, 4) + ".gif";
+      images[i] = loadImage(filename);
+    }
+  }
+
+  void display(float xpos, float ypos) {
+    frame = (frame+1) % imageCount;
+    image(images[frame], xpos, ypos);
+  }
+  
+  int getWidth() {
+    return images[0].width;
   }
 }
 
