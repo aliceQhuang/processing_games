@@ -18259,8 +18259,8 @@ module.exports = function setupParser(Processing, options) {
       var canvas = canvasData.canvas, context = canvasData.context,
           width = w || obj.width, height = h || obj.height;
 
-      // canvas.width = width;
-      // canvas.height = height;
+      canvas.width = width;
+      canvas.height = height;
 
       if (!obj) {
         context.clearRect(0, 0, width, height);
