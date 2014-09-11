@@ -88,18 +88,18 @@ static class SolidObject {
   // creates impassable Terrain at point (x, y) with width w, height h... etc
   // Terrain consists of a Ground block on top, 2 Walls for the sides, and a Ceiling for the bottom
   void createTerrain(float x, float y, float w, float h, float xSpd, float ySpd, float hp){
-    createGround("Ground", x, y, w-3, 6, xSpd, ySpd, hp);
-    createWall("Wall", x-10, y+5, w/2 + 10, h-10, xSpd, ySpd, hp);
-    createWall("Wall", x + w/2, y+5, w/2 + 10, h-10, xSpd, ySpd, hp);
-    createCeiling("Ceiling", x, y + h/2, w-3, 6, xSpd, ySpd, hp);
+    createGround(x, y, w-3, 6, xSpd, ySpd, hp);
+    createWall(x-10, y+5, w/2 + 10, h-10, xSpd, ySpd, hp);
+    createWall(x + w/2, y+5, w/2 + 10, h-10, xSpd, ySpd, hp);
+    createCeiling(x, y + h/2, w-3, 6, xSpd, ySpd, hp);
   }
   
   // Creates a SolidObject with id "Ground"
   // When collided with, player is set on top of Ground
-  SolidObject createGround(String id, float x, float y, float w, float h, float xSpd, float ySpd, float hp){
+  SolidObject createGround(float x, float y, float w, float h, float xSpd, float ySpd, float hp){
     SolidObject so = new SolidObject();
     
-    so.name = id;
+    so.name = "Ground";
     so.xPos = x;
     so.yPos = y;
     so.xSpeed = xSpd;
@@ -115,10 +115,10 @@ static class SolidObject {
 
   // Creates a SolidObject with id "Wall"
   // When collided with, player is set to the left or right of Wall
-  SolidObject createWall(String id, float x, float y, float w, float h, float xSpd, float ySpd, float hp){
+  SolidObject createWall(float x, float y, float w, float h, float xSpd, float ySpd, float hp){
     SolidObject so = new SolidObject();
     
-    so.name = id;
+    so.name = "Wall";
     so.xPos = x;
     so.yPos = y;
     so.xSpeed = xSpd;
@@ -134,10 +134,10 @@ static class SolidObject {
   
   // Creates a SolidObject with id "Ceiling"
   // When collided with, player is set to the bottom of Ceiling
-  SolidObject createCeiling(String id, float x, float y, float w, float h, float xSpd, float ySpd, float hp){
+  SolidObject createCeiling(float x, float y, float w, float h, float xSpd, float ySpd, float hp){
     SolidObject so = new SolidObject();
     
-    so.name = id;
+    so.name = "Ceiling";
     so.xPos = x;
     so.yPos = y;
     so.xSpeed = xSpd;
@@ -233,7 +233,7 @@ void generateMap(){
 }
 
 void generateMap1(){
-  player.createGround("Ground", 0, 400, 99999999, 500, 0, 0, 100000);
+  player.createGround(0, 400, 99999999, 500, 0, 0, 100000);
   for (int i = 0; i < 50; i++){
     player.createTerrain(random(0,2000), random(height/2, 400), random(10, 100), random(100, 200), 0, 0, 100000);
     player.createTerrain(random(2000,4000), random(height/3, 600), random(10, 100), random(100, 200), 0, 0, 100000);
