@@ -54,6 +54,8 @@ void draw() {
       player_y = 25;
     }
     image(player, player_x, player_y);
+    player.resize(75, 75);
+    image(player, player_x, player_y);
     ellipse(player_x, player_y, 20, 20);
     rect(bottom_block_point.x, bottom_block_point.y, block_width, height-bottom_block_point.y);
     rect(top_block_point.x, top_block_point.y, block_width, bottom_block_point.y-squeeze_space);
